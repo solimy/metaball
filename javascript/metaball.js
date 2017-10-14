@@ -125,7 +125,7 @@ function update() {
 		for (x = 0; x < scene.width; ++x) {
 			//setDecimalColor(color, chooseColor(x, y));
 			hsl = hslToRgb(chooseColor(x, y), 1, 0.5);
-			setRGBColor(color, hsl[0], hsl[1], hsl[2]);
+			//setRGBColor(color, hsl[0], hsl[1], hsl[2]);
 			setPixel(scene.image, x, y, hsl[0], hsl[1], hsl[2], 255);
 		}
 	}
