@@ -1,0 +1,126 @@
+<html>
+  <head>
+    <script>
+      var scene;
+
+function randInt(min, max) {
+	return Math.floor(Math.random() * (max - min)) + min;
+}
+
+function Blob() {
+	this.x = randInt(0, 500);
+	this.y = randInt(0, 500);
+	this.vx = randInt(1, 20);
+	this.vy = randInt(1, 20);
+	this.radius = randInt(10, 50);
+	this.update = function() {
+		this.x += this.vx;
+		this.y += this.vy;
+		if (this.x < 0 || this.x > 500) this.vx *= -1;
+		if (this.y < 0 || this.y > 500) this.vy *= -1;
+	}
+}
+
+function setDecimalColor(color, decimal) {
+	color.decimal = decimal;
+	color.r = (decimal & 0xff0000) >> 16;
+	color.g = (decimal & 0x00ff00) >> 8;
+	color.b = (decimal & 0x0000ff) >> 0;
+}
+function setRGBColor(color, r, g, b) {
+	color.r = r;
+	color.g = g;
+	color.b = b;
+	color.decimal = r;
+	color.decimal <<= 8;
+	color.decimal += g;
+	color.decimal <<= 8;
+	color.decimal += b;
+}
+
+function setPixel(imageData, x, y, r, g, b, a) {
+    index = (x + y * imageData.width) * 4;
+    imageData.data[index+0] = r;
+    imageData.data[index+1] = g;
+    imageData.data[index+2] = b;
+    imageData.data[index+3] = a;
+}
+
+function getPixel(imageData, x, y) {
+	var pixel = {};
+    index = (x + y * imageData.width) * 4;
+    pixel.r = imageData.data[index+0];
+    pixel.g = imageData.data[index+1];
+    pixel.b = imageData.data[index+2];
+	pixel.a = imageData.data[index+3];
+	return pixel;
+}
+
+function setup(scene) {
+    scene.canvas = document.getElementById("canvas");
+	scene.ctx = scene.canvas.getContext("2d");
+	scene.fps = 30;
+	scene.drawRate = 30;
+	scene.updateRate = 30;
+	scene.image = scene.ctx.createImageData(500, 500);
+	for (y = 0; y < scene.image.height; ++y) {
+		for (x = 0; x < scene.image.width; ++x) {
+			setPixel(scene.image, x, y, 0, 0, 0, 10);
+		}
+	}
+	scene.loop = setInterval(loop, 1000/scene.fps);
+	//scene.drawLoop = setInterval(draw, 1000/scene.drawRate);
+	//scene.updateLoop = setInterval(update, 1000/scene.updateRate);
+
+	scene.blobs = [];
+	for (qtt = randInt(3, 7); qtt >= 0; --qtt) {
+		scene.blobs[qtt] = new Blob();
+	}
+}
+
+function draw() {
+	scene.ctx.putImageData(scene.image, 0, 0);
+}
+
+function chooseColor(x, y) {
+	var color = 0;
+	var d;
+	
+	for (blob in scene.blobs) {
+		d = Math.sqrt(Math.pow(x - scene.blobs[blob].x, 2) + Math.pow(y - scene.blobs[blob].y, 2));
+		color += 100 * scene.blobs[blob].radius / d;
+	}
+	return color;
+}
+
+function update() {
+	var color = {};
+
+	for (y = 0; y < scene.image.height; ++y) {
+		for (x = 0; x < scene.image.width; ++x) {
+			setDecimalColor(color, chooseColor(x, y));
+			setPixel(scene.image, x, y, color.decimal, color.decimal, color.decimal, 255);
+		}
+	}
+	for (blob in scene.blobs) {
+		scene.blobs[blob].update();
+	}
+}
+
+function loop() {
+	draw();
+	update();
+}
+
+function main() {
+	scene = {};
+	setup(scene);
+	update();
+	draw();
+}
+</script>
+  </head>
+  <body onload="main()">
+    <canvas id="canvas" width="500" height="500"></canvas>
+  </body>
+</html>
